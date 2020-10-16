@@ -1,7 +1,7 @@
 {
   "name": "statecore",
-  "version": "0.0.1",
-  "description": "A state-driven library.",
+  "version": "0.0.2",
+  "description": "A state-observable library.",
   "main": "statecore.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,8 +16,7 @@
     "state",
     "machine",
     "core",
-    "emit",
-    "event"
+    "emit"
   ],
   "author": "ZenWANG (zenyes@gmail.com)",
   "license": "MIT",

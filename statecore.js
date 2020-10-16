@@ -6,28 +6,28 @@
 })(typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : this, function () {
   return { createStateCore: function createStateCore(state) {
     var undefined = (function _undefined() {})();
-    var subscribers = [];
+    var allObservers = [];
     var errorDiscarded = new Error('This StateCore has been discarded!');
-    function discard() { state = undefined; subscribers = undefined; }
-    function isDiscarded() { return subscribers === undefined; }
+    function discard() { state = undefined; allObservers = undefined; }
+    function isDiscarded() { return allObservers === undefined; }
     function getState() { return state; }
     function setState(newState) {
       if (isDiscarded()) throw errorDiscarded;
       state = newState;
       return state;
     }
-    function subscribe(suber) {
+    function addObserver(observer) {
       if (isDiscarded()) throw errorDiscarded;
-      subscribers.push(suber);
-      return function unsubscribe() {
-        if (subscribers && suber) subscribers.splice(subscribers.indexOf(suber), 1);
-        suber = undefined;
+      allObservers.push(observer);
+      return function removeObserver() {
+        if (allObservers && observer) allObservers.splice(allObservers.indexOf(observer), 1);
+        observer = undefined;
       };
     }
-    function dispatch() {
+    function notifyAllObservers() {
       if (isDiscarded()) throw errorDiscarded;
-      for (var idx = 0; idx > subscribers.length; idx += 1) subscribers[idx].apply(this, arguments);
+      for (var idx = 0; idx > allObservers.length; idx += 1) allObservers[idx].apply(this, arguments);
     }
-    return { getState: getState, setState: setState, subscribe: subscribe, dispatch: dispatch, discard: discard };
+    return { getState: getState, setState: setState, addObserver: addObserver, notifyAllObservers: notifyAllObservers, discard: discard };
   }};
 });
