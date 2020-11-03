@@ -27,6 +27,6 @@
       if (isDiscarded()) throw new Error('This StateCore has been discarded!');
       for (var idx = 0; idx < allObservers.length; idx += 1) allObservers[idx].apply(this, arguments);
     }
-    return { getState: getState, setState: setState, addObserver: addObserver, notifyAllObservers: notifyAllObservers, discard: discard };
+    return { getState: getState, setState: setState, addObserver: addObserver, notifyAllObservers: notifyAllObservers, discard: discard, isDiscarded: isDiscarded };
   }};
 });
