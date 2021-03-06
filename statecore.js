@@ -1,8 +1,11 @@
 (function modelify(rootProvider, name, deps, factory) {
   'use strict';
   if (typeof define === 'function' && define.amd) {
-    if (name) define(name, deps, factory);
-    else define(deps, factory);
+    if (name) {
+      define(name, deps, factory);
+    } else {
+      define(deps, factory);
+    }
     return;
   }
   if (typeof exports === 'object') return module.exports = factory.apply(this, deps.map(dep => require(dep)));
