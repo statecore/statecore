@@ -1,6 +1,10 @@
 (function modelify(rootProvider, name, deps, factory) {
   'use strict';
-  if (typeof define === 'function' && define.amd) return name ? define(name, deps, factory) : define(deps, factory);
+  if (typeof define === 'function' && define.amd) {
+    if (name) define(name, deps, factory);
+    else define(deps, factory);
+    return;
+  }
   if (typeof exports === 'object') return module.exports = factory.apply(this, deps.map(dep => require(dep)));
   const root = (typeof rootProvider === 'function' ? rootProvider() : rootProvider);
   if (!root || typeof root !== 'object') throw new Error('Invalid root object!');
