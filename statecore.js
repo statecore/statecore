@@ -1,21 +1,17 @@
-(function modelify(rootProvider, name, deps, factory) {
+(function moduleify(moduleFactory) {
   'use strict';
   if (typeof define === 'function' && define.amd) {
-    if (name) {
-      define(name, deps, factory);
-    } else {
-      define(deps, factory);
-    }
-    return;
+    define('statecore', [], moduleFactory);
+    define('StateCore', [], moduleFactory);
+  } else if (typeof module === 'object' && typeof exports === 'object') {
+    module.exports = moduleFactory();
   }
-  if (typeof exports === 'object') return module.exports = factory.apply(this, deps.map(dep => require(dep)));
-  const root = (typeof rootProvider === 'function' ? rootProvider() : rootProvider);
-  if (!root || typeof root !== 'object') throw new Error('Invalid root object!');
-  const model = factory.apply(this, deps.map(dep => root[dep]));
-  if (name) return root[name] = model;
-})(function rootProvider() {
-  return (typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : typeof global !== 'undefined' ? global : this);
-}, 'statecore', [], function def () {
+  var root = (typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : typeof global !== 'undefined' ? global : this);
+  if (root && typeof root === 'object') {
+    root['statecore'] = moduleFactory();
+    root['StateCore'] = root['statecore'];
+  }
+})(function moduleFactory () {
   'use strict';
   return { createStatecore: function createStatecore(state) {
     var undefined = (function _undefined() {})();
