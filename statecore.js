@@ -34,7 +34,9 @@
     }
     function statecoreNotifyAllObservers() {
       if (statecoreIsDiscarded()) throw new Error('This Statecore has been discarded!');
-      for (var idx = 0; idx < allObservers.length; idx += 1) allObservers[idx].apply(this, arguments);
+      var copyObservers = [];
+      while (copyObservers.length < allObservers.length) copyObservers.push(allObservers[copyObservers.length]);
+      for (var copyIdx = 0; copyIdx < copyObservers.length; copyIdx += 1) copyObservers[copyIdx].apply(this, arguments);
     }
     return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
   }};
