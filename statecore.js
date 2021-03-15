@@ -16,7 +16,7 @@
   return { createStatecore: function createStatecore(state) {
     var allObservers = [];
     function statecoreDiscard() { state = null; allObservers.splice(0); allObservers = null; }
-    function statecoreIsDiscarded() { return allObservers === null; }
+    function statecoreIsDiscarded() { return !allObservers; }
     function statecoreGetState() { return state; }
     function statecoreSetState(newState) {
       if (statecoreIsDiscarded()) throw new Error('This Statecore has been discarded!');
