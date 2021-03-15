@@ -14,28 +14,32 @@
 })(function moduleFactory () {
   'use strict';
   return { createStatecore: function createStatecore(state) {
-    var undefined = (function _undefined() {})();
     var allObservers = [];
-    function statecoreDiscard() { state = undefined; allObservers = undefined; }
-    function statecoreIsDiscarded() { return allObservers === undefined; }
+    function statecoreDiscard() { state = null; allObservers.splice(0); allObservers = null; }
+    function statecoreIsDiscarded() { return allObservers === null; }
     function statecoreGetState() { return state; }
     function statecoreSetState(newState) {
       if (statecoreIsDiscarded()) throw new Error('This Statecore has been discarded!');
       state = newState;
       return state;
     }
+    function statecoreRemoveObserver(observer) {
+      if (statecoreIsDiscarded()) return;
+      var copyObservers = allObservers;
+      allObservers = [];
+      for (var idx = 0; idx < copyObservers.length; idx += 1) {
+        if (observer !== copyObservers[idx]) allObservers.push(copyObservers[idx]);
+      }
+    }
     function statecoreAddObserver(observer) {
       if (statecoreIsDiscarded()) throw new Error('This Statecore has been discarded!');
+      if (typeof observer !== 'function') throw new Error('The observer must be a function!');
       allObservers.push(observer);
       return function removeObserver() {
-        if (observer && allObservers) {
-          var copyObservers = allObservers;
-          allObservers = [];
-          for (var idx = 0; idx < copyObservers.length; idx += 1) {
-            if (observer !== copyObservers[idx]) allObservers.push(copyObservers[idx]);
-          }
+        if (observer) {
+          statecoreRemoveObserver(observer);
+          observer = null;
         }
-        observer = undefined;
       };
     }
     function statecoreNotifyAllObservers() {
@@ -43,6 +47,6 @@
       var copyObservers = allObservers;
       for (var copyIdx = 0; copyIdx < copyObservers.length; copyIdx += 1) copyObservers[copyIdx].apply(this, arguments);
     }
-    return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
+    return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
   }};
 });
