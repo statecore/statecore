@@ -1,3 +1,8 @@
+/**
+ * @author MrZenW
+ * @email MrZenW@gmail.com, https://MrZenW.com
+ */
+
 (function moduleify(moduleFactory) {
   'use strict';
   var statecoreLib = null;
@@ -5,7 +10,7 @@
     var amdFactory = function () {
       statecoreLib = statecoreLib || moduleFactory.apply(this, arguments);
       return statecoreLib;
-    });
+    };
     define('statecore', [], amdFactory);
     define('StateCore', [], amdFactory);
   } else if (typeof module === 'object' && typeof exports === 'object') {
