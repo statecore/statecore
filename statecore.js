@@ -5,23 +5,23 @@
 
 (function moduleify(moduleFactory) {
   'use strict';
-  var statecoreLib = null;
+  var theLib = null;
   if (typeof define === 'function' && define.amd) {
     function moduleFactoryWrapper() {
-      statecoreLib = statecoreLib || moduleFactory.apply(this, arguments);
-      return statecoreLib;
-    };
+      theLib = theLib || moduleFactory.apply(this, arguments);
+      return theLib;
+    }
     define('statecore', [], moduleFactoryWrapper);
     define('StateCore', [], moduleFactoryWrapper);
   } else if (typeof module === 'object' && typeof exports === 'object') {
-    statecoreLib = statecoreLib || moduleFactory();
-    module.exports = statecoreLib;
+    theLib = theLib || moduleFactory();
+    module.exports = theLib;
   }
   var root = (typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : typeof global !== 'undefined' ? global : this);
   if (root && typeof root === 'object') {
-    statecoreLib = statecoreLib || moduleFactory();
-    root['statecore'] = statecoreLib;
-    root['StateCore'] = statecoreLib;
+    theLib = theLib || moduleFactory();
+    root['statecore'] = theLib;
+    root['StateCore'] = theLib;
   }
 })(function moduleFactory () {
   'use strict';
