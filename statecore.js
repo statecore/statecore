@@ -7,12 +7,12 @@
   'use strict';
   var statecoreLib = null;
   if (typeof define === 'function' && define.amd) {
-    var amdFactory = function () {
+    function moduleFactoryWrapper() {
       statecoreLib = statecoreLib || moduleFactory.apply(this, arguments);
       return statecoreLib;
     };
-    define('statecore', [], amdFactory);
-    define('StateCore', [], amdFactory);
+    define('statecore', [], moduleFactoryWrapper);
+    define('StateCore', [], moduleFactoryWrapper);
   } else if (typeof module === 'object' && typeof exports === 'object') {
     statecoreLib = statecoreLib || moduleFactory();
     module.exports = statecoreLib;
