@@ -1,6 +1,6 @@
 /**
  * @author MrZenW
- * @email MrZenW@gmail.com, https://MrZenW.com
+ * @email MrZenW@gmail.com, https://MrZenW.com, https://github.com/MrZenW
  */
 
 (function moduleify(moduleFactory) {
