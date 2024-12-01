@@ -15,11 +15,11 @@ export type StatecoreObserver = (...args: any[]) => void;
 export type StatecoreObserverRemover = () => void;
 
 export interface Statecore {
-  statecoreDiscard(): any;
+  statecoreDiscard(): void;
   statecoreIsDiscarded(): boolean;
   statecoreGetState(): any;
   statecoreSetState(state: any): any;
-  statecoreRemoveObserver(observer: StatecoreObserver): any;
+  statecoreRemoveObserver(observer: StatecoreObserver): void;
   statecoreAddObserver(observer: StatecoreObserver): StatecoreObserverRemover;
   statecoreNotifyAllObservers(...args: any[]): void;
 }
