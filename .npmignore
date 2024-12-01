@@ -1,3 +1,10 @@
+######## .npmignore ########
+# don't publish github actions
+.github/
+
+
+######## to cover .gitignore file ########
+
 # Created by https://www.toptal.com/developers/gitignore/api/node,linux,macos,windows,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,linux,macos,windows,git
 
