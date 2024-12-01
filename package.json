@@ -5,7 +5,7 @@
   "main": "statecore.js",
   "types": "statecore.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"NO TESTS\" && exit 0"
   },
   "repository": {
     "type": "git",
