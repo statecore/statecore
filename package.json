@@ -1,8 +1,9 @@
 {
   "name": "statecore",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A state-observable library.",
   "main": "statecore.js",
+  "types": "statecore.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,14 +12,22 @@
     "url": "git+https://github.com/statecore/statecore.git"
   },
   "keywords": [
-    "state core",
+    "statecore",
+    "statemachine",
     "state machine",
     "state",
     "machine",
     "core",
-    "emit"
+    "emit",
+    "observable",
+    "observer",
+    "observer pattern",
+    "event",
+    "event emitter",
+    "eventemitter",
+    "event driven"
   ],
-  "author": "ZenWANG (zenyes@gmail.com)",
+  "author": "MrZenW (MrZenW@gmail.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/statecore/statecore/issues"
