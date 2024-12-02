@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 1.2.2
+ * @version 1.2.3
  */
 
 (function moduleify(moduleFactory) {
@@ -27,7 +27,8 @@
   if (typeof this === 'object') this['statecore'] = _getStatecoreLib();
 })(function moduleFactory () {
   'use strict';
-  return { createStatecore: function createStatecore(state) {
+  var statecoreStateEventName = '__state__';
+  return { statecoreStateEventName: statecoreStateEventName, createStatecore: function createStatecore(state) {
     var allObservers = [];
     function statecoreDiscard() { state = null; allObservers = null; }
     function statecoreIsDiscarded() { return !allObservers; }
@@ -36,7 +37,7 @@
       if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
       var oldState = state
       state = newState;
-      statecoreNotifyAllObservers('__state__', newState, oldState);
+      _caller_statecoreNotifyAllObservers(this, [statecoreStateEventName, newState, oldState]);
       return state;
     }
     function statecoreRemoveObserver(observer) {
@@ -67,16 +68,23 @@
         }
       };
     }
-    function statecoreNotifyAllObservers() {
+    function _caller_statecoreNotifyAllObservers(caller, args) {
       if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
       var copyObservers = allObservers;
       var observersLength = copyObservers.length;
       for (var copyIdx = 0; copyIdx < observersLength; copyIdx += 1) {
         try {
-          copyObservers[copyIdx].apply(this, arguments);
+          copyObservers[copyIdx].apply(caller, args);
         } catch (error) {
           console.error('Error in statecore observer:', copyObservers[copyIdx], error);
         }
+      }
+    }
+    function statecoreNotifyAllObservers(eventName) {
+      if (eventName === statecoreStateEventName) {
+        console.warn('The event name "' + statecoreStateEventName + '" is reserved for internal use!');
+      } else {
+        _caller_statecoreNotifyAllObservers(this, arguments);
       }
     }
     return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };

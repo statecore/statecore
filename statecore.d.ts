@@ -11,7 +11,6 @@ declare namespace NodeJS {
 }
 
 export type StatecoreObserver = (...args: any[]) => void;
-
 export type StatecoreObserverRemover = () => void;
 
 export interface Statecore {
@@ -24,4 +23,5 @@ export interface Statecore {
   statecoreNotifyAllObservers(...args: any[]): void;
 }
 
+export const statecoreStateEventName: string;
 export function createStatecore(initialState?: any): Statecore;
