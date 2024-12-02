@@ -34,7 +34,9 @@
     function statecoreGetState() { return state; }
     function statecoreSetState(newState) {
       if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
+      var oldState = state
       state = newState;
+      statecoreNotifyAllObservers('__state__', newState, oldState);
       return state;
     }
     function statecoreRemoveObserver(observer) {
