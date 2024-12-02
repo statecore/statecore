@@ -72,7 +72,11 @@
       var copyObservers = allObservers;
       var observersLength = copyObservers.length;
       for (var copyIdx = 0; copyIdx < observersLength; copyIdx += 1) {
-        copyObservers[copyIdx].apply(this, arguments);
+        try {
+          copyObservers[copyIdx].apply(this, arguments);
+        } catch (error) {
+          console.error('Error in statecore observer:', copyObservers[copyIdx], error);
+        }
       }
     }
     return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
