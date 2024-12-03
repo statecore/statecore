@@ -1,6 +1,7 @@
 ######## .npmignore ########
 # don't publish github actions
 .github/
+test.js
 
 
 ######## to cover .gitignore file ########
