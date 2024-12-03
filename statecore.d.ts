@@ -20,6 +20,7 @@ export interface Statecore {
   statecoreSetState(state: any): any;
   statecoreRemoveObserver(observer: StatecoreObserver): void;
   statecoreAddObserver(observer: StatecoreObserver): StatecoreObserverRemover;
+  statecoreGetAllObservers(): StatecoreObserver[];
   statecoreNotifyAllObservers(...args: any[]): void;
 }
 
