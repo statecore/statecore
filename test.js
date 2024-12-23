@@ -19,7 +19,7 @@ statecoreInstance.statecoreSetState({ test: 'test2' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test2' });
 // The observer should have been called
 assert.equal(observerCalled, true);
-assert.deepEqual(observerCalledWithArgs, ['__state__', { test: 'test2' }, { test: 'test' }]);
+assert.deepEqual(observerCalledWithArgs, [statecoreLib.STATECORE_EVENT_NAME_STATE, { test: 'test2' }, { test: 'test' }]);
 
 // Test the observer throwing an error
 observerCalled = false;
@@ -33,7 +33,7 @@ statecoreInstance.statecoreSetState({ test: 'test3' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test3' });
 // The 1st observer should have been called
 assert.equal(observerCalled, true);
-assert.deepEqual(observerCalledWithArgs, ['__state__', { test: 'test3' }, { test: 'test2' }]);
+assert.deepEqual(observerCalledWithArgs, [statecoreLib.STATECORE_EVENT_NAME_STATE, { test: 'test3' }, { test: 'test2' }]);
 // Test remove the observer that throws an error
 removeObserverThrowingError();
 assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer]);
