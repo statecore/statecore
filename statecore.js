@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 1.2.6
+ * @version 1.3.0
  */
 
 (function moduleify(moduleFactory) {
@@ -23,8 +23,8 @@
   if (typeof this === 'object') this['statecore'] = _getStatecoreLib();
 })(function moduleFactory () {
   'use strict';
-  var statecoreStateEventName = '__state__';
-  return { statecoreStateEventName: statecoreStateEventName, createStatecore: function createStatecore(state) {
+  var STATECORE_EVENT_NAME_STATE = '__STATE__';
+  return { STATECORE_EVENT_NAME_STATE: STATECORE_EVENT_NAME_STATE, createStatecore: function createStatecore(state) {
     var allObservers = [];
     function statecoreIsDiscarded() { return !allObservers; }
     function statecoreDiscard() { state = null; allObservers = null; }
@@ -36,7 +36,7 @@
       _throw_ErrorIfDiscarded();
       var oldState = state;
       state = newState;
-      _call_statecoreNotifyAllObservers(this, [statecoreStateEventName, newState, oldState]);
+      _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT_NAME_STATE, newState, oldState]);
       return state;
     }
     function statecoreGetAllObservers() { return allObservers ? allObservers.slice() : null; }
@@ -75,8 +75,8 @@
     }
     function statecoreNotifyAllObservers(eventName) {
       _throw_ErrorIfDiscarded();
-      if (eventName === statecoreStateEventName) {
-        console.warn('The event name "' + statecoreStateEventName + '" is reserved for internal use!');
+      if (eventName === STATECORE_EVENT_NAME_STATE) {
+        console.warn('The event name "' + STATECORE_EVENT_NAME_STATE + '" is reserved for internal use!');
       } else {
         _call_statecoreNotifyAllObservers(this, arguments);
       }
