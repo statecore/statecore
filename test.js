@@ -28,7 +28,7 @@ const observerThrowingError = function() {
   throw new Error('Test error');
 }
 const removeObserverThrowingError = statecoreInstance.statecoreAddObserver(observerThrowingError);
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observerThrowingError, observer]); // The order is important, the last observer added should be the first to be called
+assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer, observerThrowingError]);
 statecoreInstance.statecoreSetState({ test: 'test3' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test3' });
 // The 1st observer should have been called

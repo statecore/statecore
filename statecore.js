@@ -28,12 +28,12 @@
     var allObservers = [];
     function statecoreIsDiscarded() { return !allObservers; }
     function statecoreDiscard() { state = null; allObservers = null; }
-    function _throw_ErrorIfDiscarded() {
+    function _throwError_IfDiscarded() {
       if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
     }
     function statecoreGetState() { return state; }
     function statecoreSetState(newState) {
-      _throw_ErrorIfDiscarded();
+      _throwError_IfDiscarded();
       var oldState = state;
       state = newState;
       _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT_NAME_STATE, newState, oldState]);
@@ -41,40 +41,39 @@
     }
     function statecoreGetAllObservers() { return allObservers ? allObservers.slice() : null; }
     function statecoreRemoveObserver(observer) {
-      _throw_ErrorIfDiscarded();
-      var copyObservers = allObservers.slice();
-      var newAllObservers = [];
-      while (copyObservers.length > 0) {
-        var copyObserver = copyObservers.pop();
-        if (copyObserver !== observer) newAllObservers.unshift(copyObserver);
+      _throwError_IfDiscarded();
+      var existingObserverIndex = allObservers.indexOf(observer);
+      if (existingObserverIndex > -1) {
+        var copyObservers = allObservers.slice()
+        copyObservers.splice(existingObserverIndex, 1);
+        allObservers = copyObservers;
       }
-      allObservers = newAllObservers;
     }
     function statecoreAddObserver(observer) {
-      _throw_ErrorIfDiscarded();
+      _throwError_IfDiscarded();
       if (typeof observer !== 'function') throw new Error('The observer must be a function!');
-      var copyObservers = allObservers.slice();
-      copyObservers.unshift(observer);
-      allObservers = copyObservers;
+      if (allObservers.indexOf(observer) === -1) {
+        var copyObservers = allObservers.slice();
+        copyObservers.push(observer);
+        allObservers = copyObservers;
+      }
       return function removeObserver() {
-        if (observer) {
-          statecoreRemoveObserver(observer);
-          observer = null;
-        }
+        statecoreRemoveObserver(observer);
       };
     }
     function _call_statecoreNotifyAllObservers(caller, args) {
       var copyObservers = allObservers.slice();
-      while (copyObservers.length > 0) {
+      var restObserversCount = copyObservers.length;
+      while (restObserversCount > 0) {
         try {
-          while (copyObservers.length > 0) copyObservers.pop().apply(caller, args);
+          while (restObserversCount > 0) copyObservers[copyObservers.length - (restObserversCount--)].apply(caller, args);
         } catch (error) {
           console.error('Error in statecore observer:', error);
         }
       }
     }
     function statecoreNotifyAllObservers(eventName) {
-      _throw_ErrorIfDiscarded();
+      _throwError_IfDiscarded();
       if (eventName === STATECORE_EVENT_NAME_STATE) {
         console.warn('The event name "' + STATECORE_EVENT_NAME_STATE + '" is reserved for internal use!');
       } else {
