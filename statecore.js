@@ -10,17 +10,19 @@
 (function moduleify(moduleFactory) {
   'use strict';
   var statecoreLib = null;
-  function _getStatecoreLib() {
+  function _getStatecoreLibCopy() {
     statecoreLib = statecoreLib || moduleFactory.apply(this, arguments);
-    return statecoreLib;
+    var statecoreLibCopy = {};
+    for (var key in statecoreLib) statecoreLibCopy[key] = statecoreLib[key];
+    return statecoreLibCopy;
   }
-  if (typeof define === 'function' && define.amd) define('statecore', [], _getStatecoreLib);
-  if (typeof module === 'object' && typeof exports === 'object') module.exports = _getStatecoreLib();
-  if (typeof window === 'object') window['statecore'] = _getStatecoreLib();
-  if (typeof global === 'object') global['statecore'] = _getStatecoreLib();
-  if (typeof globalThis === 'object') globalThis['statecore'] = _getStatecoreLib();
-  if (typeof self === 'object') self['statecore'] = _getStatecoreLib();
-  if (typeof this === 'object') this['statecore'] = _getStatecoreLib();
+  if (typeof define === 'function' && define.amd) define('statecore', [], _getStatecoreLibCopy);
+  if (typeof module === 'object' && typeof exports === 'object') module.exports = _getStatecoreLibCopy();
+  if (typeof window === 'object') window['statecore'] = _getStatecoreLibCopy();
+  if (typeof global === 'object') global['statecore'] = _getStatecoreLibCopy();
+  if (typeof globalThis === 'object') globalThis['statecore'] = _getStatecoreLibCopy();
+  if (typeof self === 'object') self['statecore'] = _getStatecoreLibCopy();
+  if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory () {
   'use strict';
   var STATECORE_EVENT_NAME_STATE = '__STATE__';
