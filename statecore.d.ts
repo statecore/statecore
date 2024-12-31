@@ -25,4 +25,10 @@ export interface Statecore {
 }
 
 export const STATECORE_EVENT_NAME_STATE: string;
+
 export function createStatecore(initialState?: any): Statecore;
+
+export class StatecoreClass implements Statecore {
+  statecoreClassAddEventObserver(eventName: string, observer: StatecoreObserver): StatecoreObserverRemover;
+  statecoreClassNotifyAllEventObservers(eventName: string, ...args: any[]): void;
+}

@@ -24,7 +24,7 @@
 })(function moduleFactory () {
   'use strict';
   var STATECORE_EVENT_NAME_STATE = '__STATE__';
-  return { STATECORE_EVENT_NAME_STATE: STATECORE_EVENT_NAME_STATE, createStatecore: function createStatecore(state) {
+  function createStatecore(state) {
     var allObservers = [];
     function statecoreIsDiscarded() { return !allObservers; }
     function statecoreDiscard() { state = null; allObservers = null; }
@@ -81,5 +81,19 @@
       }
     }
     return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreGetAllObservers: statecoreGetAllObservers, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
-  }};
+  }
+  function StatecoreClass(initialState) {
+    if (!(this instanceof StatecoreClass)) return new StatecoreClass(initialState);
+    var statecore = createStatecore(initialState);
+    for (var key in statecore) this[key] = statecore[key];
+  }
+  StatecoreClass.prototype.statecoreClassAddEventObserver = function statecoreClassAddEventObserver(eventName, observer) {
+    return this.statecoreAddObserver(function (eventNameArg) {
+      if (eventNameArg === eventName) observer.apply(this, arguments);
+    });
+  };
+  StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
+    this.statecoreNotifyAllObservers.apply(this, arguments);
+  };
+  return { STATECORE_EVENT_NAME_STATE: STATECORE_EVENT_NAME_STATE, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
 });
