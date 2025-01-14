@@ -24,7 +24,7 @@ export interface Statecore {
   statecoreNotifyAllObservers(...args: any[]): void;
 }
 
-export const STATECORE_EVENT_NAME_STATE: string;
+export const STATECORE_EVENT__STATE_CHANGE: string;
 
 export function createStatecore(initialState?: any): Statecore;
 

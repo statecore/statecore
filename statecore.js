@@ -25,7 +25,7 @@
   if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory () {
   'use strict';
-  var STATECORE_EVENT_NAME_STATE = '__STATE__';
+  var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
   function createStatecore(state) {
     var allObservers = [];
     function statecoreIsDiscarded() { return !allObservers; }
@@ -38,7 +38,7 @@
       _throwError_IfDiscarded();
       var oldState = state;
       state = newState;
-      _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT_NAME_STATE, newState, oldState]);
+      _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__STATE_CHANGE, newState, oldState]);
       return state;
     }
     function statecoreGetAllObservers() { return allObservers ? allObservers.slice() : null; }
@@ -76,8 +76,8 @@
     }
     function statecoreNotifyAllObservers(eventName) {
       _throwError_IfDiscarded();
-      if (eventName === STATECORE_EVENT_NAME_STATE) {
-        console.warn('The event name "' + STATECORE_EVENT_NAME_STATE + '" is reserved for internal use!');
+      if (eventName === STATECORE_EVENT__STATE_CHANGE) {
+        console.warn('The event name "' + STATECORE_EVENT__STATE_CHANGE + '" is reserved for internal use!');
       } else {
         _call_statecoreNotifyAllObservers(this, arguments);
       }
@@ -97,5 +97,5 @@
   StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
     this.statecoreNotifyAllObservers.apply(this, arguments);
   };
-  return { STATECORE_EVENT_NAME_STATE: STATECORE_EVENT_NAME_STATE, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
+  return { STATECORE_EVENT__STATE_CHANGE: STATECORE_EVENT__STATE_CHANGE, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
 });
