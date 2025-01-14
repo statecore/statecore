@@ -1,6 +1,6 @@
 {
   "name": "statecore",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "A state-observable library.",
   "main": "statecore.js",
   "types": "statecore.d.ts",
