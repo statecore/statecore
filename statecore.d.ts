@@ -25,6 +25,7 @@ export interface Statecore {
 }
 
 export const STATECORE_EVENT__STATE_CHANGE: string;
+export const STATECORE_EVENT__DISCARD: string;
 
 export function createStatecore(initialState?: any): Statecore;
 

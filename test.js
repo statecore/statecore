@@ -32,7 +32,7 @@ assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer, observ
 statecoreInstance.statecoreSetState({ test: 'test3' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test3' });
 // The 1st observer should have been called
-assert.equal(observerCalled, true);
+assert.ok(observerCalled);
 assert.deepEqual(observerCalledWithArgs, [statecoreLib.STATECORE_EVENT__STATE_CHANGE, { test: 'test3' }, { test: 'test2' }]);
 // Test remove the observer that throws an error
 removeObserverThrowingError();
@@ -50,7 +50,15 @@ assert.deepEqual(observerCalledWithArgs, null);
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test4' });
 
 // Test the discard function
+let discardEventCalled = false;
+statecoreInstance.statecoreAddObserver((eventName) => {
+  if (eventName === statecoreLib.STATECORE_EVENT__DISCARD) {
+    discardEventCalled = true;
+  }
+});
 statecoreInstance.statecoreDiscard();
+assert.ok(discardEventCalled);
+assert.ok(statecoreInstance.statecoreIsDiscarded());
 assert.deepEqual(statecoreInstance.statecoreGetState(), null);
 assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), null);
 assert.throws(() => statecoreInstance.statecoreSetState({ test: 'test5' }), /The statecore instance has been discarded!/);

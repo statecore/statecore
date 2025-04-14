@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 2.1.0
+ * @version 2.2.0
  */
 
 (function moduleify(moduleFactory) {
@@ -26,10 +26,15 @@
 })(function moduleFactory () {
   'use strict';
   var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
+  var STATECORE_EVENT__DISCARD = '__DISCARD__';
   function createStatecore(state) {
     var allObservers = [];
     function statecoreIsDiscarded() { return !allObservers; }
-    function statecoreDiscard() { state = null; allObservers = null; }
+    function statecoreDiscard() {
+      _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__DISCARD]);
+      state = null;
+      allObservers = null;
+    }
     function _throwError_IfDiscarded() {
       if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
     }
@@ -97,5 +102,5 @@
   StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
     this.statecoreNotifyAllObservers.apply(this, arguments);
   };
-  return { STATECORE_EVENT__STATE_CHANGE: STATECORE_EVENT__STATE_CHANGE, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
+  return { STATECORE_EVENT__STATE_CHANGE: STATECORE_EVENT__STATE_CHANGE, STATECORE_EVENT__DISCARD: STATECORE_EVENT__DISCARD, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
 });
