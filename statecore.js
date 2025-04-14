@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 2.2.0
+ * @version 2.2.1
  */
 
 (function moduleify(moduleFactory) {
@@ -81,8 +81,8 @@
     }
     function statecoreNotifyAllObservers(eventName) {
       _throwError_IfDiscarded();
-      if (eventName === STATECORE_EVENT__STATE_CHANGE) {
-        console.warn('The event name "' + STATECORE_EVENT__STATE_CHANGE + '" is reserved for internal use!');
+      if (eventName === STATECORE_EVENT__STATE_CHANGE || eventName === STATECORE_EVENT__DISCARD) {
+        console.warn('The event name "' + eventName + '" is reserved for internal use only!');
       } else {
         _call_statecoreNotifyAllObservers(this, arguments);
       }
