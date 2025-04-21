@@ -94,9 +94,17 @@
     var statecore = createStatecore(initialState);
     for (var key in statecore) this[key] = statecore[key];
   }
-  StatecoreClass.prototype.statecoreClassAddEventObserver = function statecoreClassAddEventObserver(eventName, observer) {
-    return this.statecoreAddObserver(function (eventNameArg) {
-      if (eventNameArg === eventName) observer.apply(this, arguments);
+  StatecoreClass.prototype.statecoreClassAddEventObserver = function statecoreClassAddEventObserver(/* eventName, observer */) {
+    var wantArgs = Array.prototype.slice.call(arguments, 0);
+    var observer = wantArgs.pop();
+    if (typeof observer !== 'function') throw new Error('The last argument must be a function!');
+
+    return this.statecoreAddObserver(function (/* ...callerArgs */) {
+      var givenArgs = Array.prototype.slice.call(arguments, 0);
+      for (var i = 0; i < wantArgs.length; i++) {
+        if (givenArgs[i] !== wantArgs[i]) return; // return if any of the arguments don't match
+      }
+      observer.apply(this, arguments);
     });
   };
   StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
