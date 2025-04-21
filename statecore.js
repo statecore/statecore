@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 2.2.2
+ * @version 2.2.3
  */
 
 (function moduleify(moduleFactory) {

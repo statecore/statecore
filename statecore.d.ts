@@ -32,8 +32,8 @@ export function createStatecore(initialState?: any): Statecore;
 export class StatecoreClass implements Statecore {
     // StatecoreClass methods
     constructor(initialState?: any);
-    statecoreClassAddEventObserver(eventName: string, ...args: any[], observer: StatecoreObserver): StatecoreObserverRemover;
-    statecoreClassNotifyAllEventObservers(eventName: string, ...args: any[]): void;
+    statecoreClassAddEventObserver(...eventArgs: any[], observer: StatecoreObserver): StatecoreObserverRemover;
+    statecoreClassNotifyAllEventObservers(...eventArgs: any[]): void;
     // Statecore interface
     statecoreDiscard(): void;
     statecoreIsDiscarded(): boolean;
