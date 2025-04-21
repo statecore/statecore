@@ -9,8 +9,8 @@ assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test' });
 let observerCalled = false;
 let observerCalledWithArgs = null;
 const observer = function(...args) {
-  observerCalled = true;
-  observerCalledWithArgs = args;
+    observerCalled = true;
+    observerCalledWithArgs = args;
 }
 const removeObserver = statecoreInstance.statecoreAddObserver(observer);
 assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer]);
@@ -25,7 +25,7 @@ assert.deepEqual(observerCalledWithArgs, [statecoreLib.STATECORE_EVENT__STATE_CH
 observerCalled = false;
 observerCalledWithArgs = null;
 const observerThrowingError = function() {
-  throw new Error('Test error');
+    throw new Error('Test error');
 }
 const removeObserverThrowingError = statecoreInstance.statecoreAddObserver(observerThrowingError);
 assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer, observerThrowingError]);
@@ -52,9 +52,9 @@ assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test4' });
 // Test the discard function
 let discardEventCalled = false;
 statecoreInstance.statecoreAddObserver((eventName) => {
-  if (eventName === statecoreLib.STATECORE_EVENT__DISCARD) {
-    discardEventCalled = true;
-  }
+    if (eventName === statecoreLib.STATECORE_EVENT__DISCARD) {
+        discardEventCalled = true;
+    }
 });
 statecoreInstance.statecoreDiscard();
 assert.ok(discardEventCalled);
