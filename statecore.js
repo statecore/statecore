@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 2.2.5
+ * @version 2.2.6
  */
 
 (function moduleify(moduleFactory) {
@@ -99,10 +99,10 @@
         var observer = wantArgs.pop();
         if (typeof observer !== 'function') throw new Error('The last argument must be a function!');
 
-        return this.statecoreAddObserver(function (/* ...callerArgs */) {
-            var givenArgs = Array.prototype.slice.call(arguments, 0);
+        return this.statecoreAddObserver(function (/* ...givenArgs */) {
+            if (arguments.length < wantArgs.length) return;
             for (var i = 0; i < wantArgs.length; i++) {
-                if (givenArgs[i] !== wantArgs[i]) return; // return if any of the arguments don't match
+                if (arguments[i] !== wantArgs[i]) return; // return if any of the arguments don't match
             }
             observer.apply(this, arguments);
         });
