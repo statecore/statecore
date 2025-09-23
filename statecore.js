@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 2.2.6
+ * @version 3.0.1
  */
 
 (function moduleify(moduleFactory) {
@@ -23,32 +23,39 @@
     if (typeof globalThis === 'object') globalThis['statecore'] = _getStatecoreLibCopy();
     if (typeof self === 'object') self['statecore'] = _getStatecoreLibCopy();
     if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
-})(function moduleFactory () {
+})(function moduleFactory() {
     'use strict';
+    var STATECORE_VERSION = '3.0.1';
     var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
-    var STATECORE_EVENT__DISCARD = '__DISCARD__';
+    var STATECORE_EVENT__DESTROY = '__DESTROY__';
+    var STATECORE_EVENT__OBSERVER_ERROR = '__OBSERVER_ERROR__';
+    var BuiltInEvents = {
+        [STATECORE_EVENT__STATE_CHANGE]: STATECORE_EVENT__STATE_CHANGE,
+        [STATECORE_EVENT__DESTROY]: STATECORE_EVENT__DESTROY,
+        [STATECORE_EVENT__OBSERVER_ERROR]: STATECORE_EVENT__OBSERVER_ERROR,
+    };
     function createStatecore(state) {
         var allObservers = [];
-        function statecoreIsDiscarded() { return !allObservers; }
-        function statecoreDiscard() {
-            _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__DISCARD]);
+        function statecoreIsDestroyed() { return !allObservers; }
+        function statecoreDestroy() {
+            _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__DESTROY], true);
             state = null;
             allObservers = null;
         }
-        function _throwError_IfDiscarded() {
-            if (statecoreIsDiscarded()) throw new Error('The statecore instance has been discarded!');
+        function _throwError_IfDestroyed() {
+            if (statecoreIsDestroyed()) throw new Error('The statecore instance has been destroyed!');
         }
         function statecoreGetState() { return state; }
         function statecoreSetState(newState) {
-            _throwError_IfDiscarded();
+            _throwError_IfDestroyed();
             var oldState = state;
             state = newState;
-            _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__STATE_CHANGE, newState, oldState]);
+            _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__STATE_CHANGE, newState, oldState], true);
             return state;
         }
         function statecoreGetAllObservers() { return allObservers ? allObservers.slice() : null; }
         function statecoreRemoveObserver(observer) {
-            _throwError_IfDiscarded();
+            _throwError_IfDestroyed();
             var existingObserverIndex = allObservers.indexOf(observer);
             if (existingObserverIndex > -1) {
                 var copyObservers = allObservers.slice()
@@ -57,18 +64,16 @@
             }
         }
         function statecoreAddObserver(observer) {
-            _throwError_IfDiscarded();
+            _throwError_IfDestroyed();
             if (typeof observer !== 'function') throw new Error('The observer must be a function!');
             if (allObservers.indexOf(observer) === -1) {
                 var copyObservers = allObservers.slice();
                 copyObservers.push(observer);
                 allObservers = copyObservers;
             }
-            return function removeObserver() {
-                statecoreRemoveObserver(observer);
-            };
+            return function removeObserver() { statecoreRemoveObserver(observer); };
         }
-        function _call_statecoreNotifyAllObservers(caller, args) {
+        function _call_statecoreNotifyAllObservers(caller, args, emitErrorEventIfObserversThrowError) {
             var copyObservers = allObservers.slice();
             var restObserversCount = copyObservers.length;
             while (restObserversCount > 0) {
@@ -76,18 +81,16 @@
                     while (restObserversCount > 0) copyObservers[copyObservers.length - (restObserversCount--)].apply(caller, args);
                 } catch (error) {
                     console.error('Error in statecore observer:', error);
+                    if (emitErrorEventIfObserversThrowError) _call_statecoreNotifyAllObservers(caller, [STATECORE_EVENT__OBSERVER_ERROR, error, args], false);
                 }
             }
         }
         function statecoreNotifyAllObservers(eventName) {
-            _throwError_IfDiscarded();
-            if (eventName === STATECORE_EVENT__STATE_CHANGE || eventName === STATECORE_EVENT__DISCARD) {
-                console.warn('The event name "' + eventName + '" is reserved for internal use only!');
-            } else {
-                _call_statecoreNotifyAllObservers(this, arguments);
-            }
+            _throwError_IfDestroyed();
+            if (BuiltInEvents[eventName]) throw new Error('Cannot manually emit built-in event: ' + eventName);
+            _call_statecoreNotifyAllObservers(this, arguments, true);
         }
-        return { statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreGetAllObservers: statecoreGetAllObservers, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDiscard: statecoreDiscard, statecoreIsDiscarded: statecoreIsDiscarded };
+        return { STATECORE_VERSION: STATECORE_VERSION, statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreGetAllObservers: statecoreGetAllObservers, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDestroy: statecoreDestroy, statecoreIsDestroyed: statecoreIsDestroyed };
     }
     function StatecoreClass(initialState) {
         if (!(this instanceof StatecoreClass)) return new StatecoreClass(initialState);
@@ -98,17 +101,42 @@
         var wantArgs = Array.prototype.slice.call(arguments, 0);
         var observer = wantArgs.pop();
         if (typeof observer !== 'function') throw new Error('The last argument must be a function!');
-
         return this.statecoreAddObserver(function (/* ...givenArgs */) {
-            if (arguments.length < wantArgs.length) return;
-            for (var i = 0; i < wantArgs.length; i++) {
-                if (arguments[i] !== wantArgs[i]) return; // return if any of the arguments don't match
-            }
+            if (arguments.length < wantArgs.length) return; // return if not enough arguments
+            for (var i = 0; i < wantArgs.length; i++) if (arguments[i] !== wantArgs[i]) return; // return if any of the arguments don't match
             observer.apply(this, arguments);
         });
     };
     StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
         this.statecoreNotifyAllObservers.apply(this, arguments);
     };
-    return { STATECORE_EVENT__STATE_CHANGE: STATECORE_EVENT__STATE_CHANGE, STATECORE_EVENT__DISCARD: STATECORE_EVENT__DISCARD, createStatecore: createStatecore, StatecoreClass: StatecoreClass };
+    var _InstanceStoreKey = Math.random().toString(36).substring(2);
+    function _preflightInstance(ctor, instanceName) {
+        if (!instanceName) throw new Error('Instance name is required!');
+        if (!Object.prototype.hasOwnProperty.call(ctor, _InstanceStoreKey)) Object.defineProperty(ctor, _InstanceStoreKey, { value: {}, enumerable: false, configurable: false, writable: false });
+    }
+    StatecoreClass.statecoreClassStaticGrabInstance = function statecoreClassStaticGrabInstance(isGrab, instanceName, state) {
+        if (typeof isGrab === 'string') { state = instanceName; instanceName = isGrab; isGrab = true; }
+        isGrab = !!isGrab;
+        _preflightInstance(this, instanceName);
+        var instance = this[_InstanceStoreKey][instanceName];
+        if (instance && instance.statecoreIsDestroyed()) {
+            instance = null;
+            delete this[_InstanceStoreKey][instanceName];
+        }
+        if (!instance) {
+            if (!isGrab) return null;
+            instance = new this(state);
+            this[_InstanceStoreKey][instanceName] = instance;
+        }
+        return instance;
+    };
+    return {
+        STATECORE_EVENT__STATE_CHANGE: STATECORE_EVENT__STATE_CHANGE,
+        STATECORE_EVENT__DESTROY: STATECORE_EVENT__DESTROY,
+        STATECORE_EVENT__OBSERVER_ERROR: STATECORE_EVENT__OBSERVER_ERROR,
+        STATECORE_VERSION: STATECORE_VERSION,
+        createStatecore: createStatecore,
+        StatecoreClass: StatecoreClass
+    };
 });
