@@ -1,9 +1,19 @@
 {
   "name": "statecore",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A state-observable library.",
   "main": "statecore.js",
+  "module": "statecore.mjs",
   "types": "statecore.d.ts",
+  "exports": {
+    ".": {
+      "types": "./statecore.d.ts",
+      "import": "./statecore.mjs",
+      "require": "./statecore.js",
+      "default": "./statecore.js"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "test": "node test.js"
   },
