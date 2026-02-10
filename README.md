@@ -1,7 +1,7 @@
 # StateCore
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-3.0.1-blue.svg)](https://github.com/MrZenW/statecore)
+[![Version](https://img.shields.io/badge/Version-3.0.4-blue.svg)](https://github.com/statecore)
 
 A lightweight, performant, and type-safe state management library based on the **observer pattern**.  
 StateCore helps you build **reactive, event-driven applications** with minimal overhead and maximum flexibility.

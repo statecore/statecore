@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 3.0.3
+ * @version 3.0.4
  */
 
 (function moduleify(moduleFactory) {
@@ -25,7 +25,7 @@
     if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory() {
     'use strict';
-    var STATECORE_VERSION = '3.0.3';
+    var STATECORE_VERSION = '3.0.4';
     var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
     var STATECORE_EVENT__DESTROY = '__DESTROY__';
     var STATECORE_EVENT__OBSERVER_ERROR = '__OBSERVER_ERROR__';
