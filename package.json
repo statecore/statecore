@@ -1,6 +1,6 @@
 {
   "name": "statecore",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A state-observable library.",
   "main": "statecore.js",
   "module": "statecore.mjs",
