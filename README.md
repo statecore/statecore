@@ -1,7 +1,7 @@
 # StateCore
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-3.0.5-blue.svg)](https://github.com/statecore/statecore)
+[![Version](https://img.shields.io/badge/Version-3.1.0-blue.svg)](https://github.com/statecore/statecore)
 
 A lightweight, performant, and type-safe state management library based on the **observer pattern**.  
 StateCore helps you build **reactive, event-driven applications** with minimal overhead and maximum flexibility.
@@ -56,10 +56,37 @@ store.statecoreDestroy();
 
 ## 📖 Complete API Reference
 
+### Quick Reference
+
+| Method | Returns | Description |
+|---|---|---|
+| `createStatecore(initialState?)` | `Statecore` | Create a new instance |
+| `statecoreGetState()` | `any` | Get current state |
+| `statecoreSetState(newState)` | `any` | Set state and notify observers |
+| `statecoreAddObserver(observer)` | `() => void` | Register observer, returns unsubscribe fn |
+| `statecoreRemoveObserver(observer)` | `void` | Remove a specific observer |
+| `statecoreGetAllObservers()` | `Function[] \| null` | Get snapshot of all observers |
+| `statecoreNotifyAllObservers(eventName, ...args)` | `Array<{value} \| {error}>` | Emit custom event, get per-observer results |
+| `statecoreDestroy()` | `void` | Destroy instance and notify observers |
+| `statecoreIsDestroyed()` | `boolean` | Check if instance is destroyed |
+
+**`StatecoreClass` only:**
+
+| Method | Returns | Description |
+|---|---|---|
+| `statecoreClassStaticGrabInstance(name, initialState?)` | `StatecoreClass` | Get or create a named singleton |
+| `statecoreClassStaticGrabInstance(isGrab, name, initialState?)` | `StatecoreClass \| null` | Conditionally get or create a named singleton |
+| `statecoreClassAddEventObserver(...matchArgs, observer)` | `() => void` | Register observer with event filtering |
+| `statecoreClassNotifyAllEventObservers(eventName, ...args)` | `void` | Emit a custom event |
+
+---
+
 ### 🏗️ Core Factory
 
 #### `createStatecore(initialState?)`
 Creates a new StateCore instance.
+
+**Returns**: a `Statecore` instance.
 
 ```javascript
 const store = createStatecore();
@@ -71,6 +98,8 @@ const storeWithState = createStatecore({ users: [], loading: false });
 #### `statecoreGetState()`
 Retrieves the current state value.
 
+**Returns**: the current state (any type), or `null` after the instance is destroyed.
+
 ```javascript
 const currentState = store.statecoreGetState();
 ```
@@ -78,14 +107,18 @@ const currentState = store.statecoreGetState();
 #### `statecoreSetState(newState)`
 Updates state and automatically notifies all observers.
 
+**Returns**: the new state value.
+
 ```javascript
-store.statecoreSetState({ users: [...users, newUser], loading: false });
+const next = store.statecoreSetState({ users: [...users, newUser], loading: false });
 ```
 
 ### 👁️ Observer Management
 
 #### `statecoreAddObserver(observer)`
 Adds an observer function that gets called on state changes.
+
+**Returns**: an `unsubscribe()` function — calling it removes the observer.
 
 **Observer Signature**: `(eventName, newState, oldState, ...customArgs) => void`
 
@@ -115,7 +148,7 @@ store.statecoreRemoveObserver(myObserver);
 ```
 
 #### `statecoreGetAllObservers()`
-Returns array of all registered observers.
+Returns a snapshot array of all registered observers, or `null` if the instance has been destroyed.
 
 ```javascript
 const observers = store.statecoreGetAllObservers();
@@ -125,10 +158,20 @@ console.log(`Active observers: ${observers ? observers.length : 0}`);
 ### 🔔 Event System
 
 #### `statecoreNotifyAllObservers(eventName, ...args)`
-Manually notify all observers with custom events.
+Manually notify all observers with a custom event. Returns an array of per-observer result objects — one entry per observer in call order.
+
+Each entry is either:
+- `{ value: returnValue }` — the observer completed and returned this value (`undefined` if it returned nothing)
+- `{ error: Error }` — the observer threw; execution continued with remaining observers
 
 ```javascript
-store.statecoreNotifyAllObservers('CUSTOM_EVENT', { message: 'Hello World' });
+const results = store.statecoreNotifyAllObservers('CUSTOM_EVENT', { message: 'Hello' });
+// results: [{ value: 'ok' }, { error: Error(...) }, { value: undefined }]
+
+results.forEach(({ value, error }) => {
+  if (error) console.error('observer failed:', error);
+  else console.log('observer returned:', value);
+});
 ```
 
 ### ♻️ Lifecycle Management
@@ -142,6 +185,8 @@ store.statecoreDestroy();
 
 #### `statecoreIsDestroyed()`
 Check if the instance has been destroyed.
+
+**Returns**: `true` if destroyed, `false` otherwise.
 
 ```javascript
 if (!store.statecoreIsDestroyed()) {

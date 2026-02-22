@@ -118,5 +118,36 @@ superInstance.statecoreSetState({ subValue: 3 });
 assert.deepEqual(superInstance.statecoreGetState(), { subValue: 3 });
 assert.deepEqual(subInstance1.statecoreGetState(), { subValue: 2 }); // should not be affected
 
+// Test return value of statecoreNotifyAllObservers
+const retValInstance = statecoreLib.createStatecore();
+
+// No observers → empty array
+assert.deepEqual(retValInstance.statecoreNotifyAllObservers('CUSTOM_EVENT'), []);
+
+// Single observer returning a value
+retValInstance.statecoreAddObserver(function(eventName) {
+    if (eventName === 'CUSTOM_EVENT') return 42;
+});
+assert.deepEqual(retValInstance.statecoreNotifyAllObservers('CUSTOM_EVENT'), [{ value: 42 }]);
+
+// Observer returning undefined is still captured
+retValInstance.statecoreAddObserver(function() { /* returns nothing */ });
+const twoResults = retValInstance.statecoreNotifyAllObservers('CUSTOM_EVENT');
+assert.equal(twoResults.length, 2);
+assert.deepEqual(twoResults[0], { value: 42 });
+assert.deepEqual(twoResults[1], { value: undefined });
+
+// Throwing observer produces { error } entry and does not prevent subsequent observers from running
+const retValInstance2 = statecoreLib.createStatecore();
+const boom = new Error('observer boom');
+retValInstance2.statecoreAddObserver(function() { return 'first'; });
+retValInstance2.statecoreAddObserver(function() { throw boom; });
+retValInstance2.statecoreAddObserver(function() { return 'third'; });
+const mixedResults = retValInstance2.statecoreNotifyAllObservers('CUSTOM_EVENT');
+assert.equal(mixedResults.length, 3);
+assert.deepEqual(mixedResults[0], { value: 'first' });
+assert.deepEqual(mixedResults[1], { error: boom });
+assert.deepEqual(mixedResults[2], { value: 'third' });
+
 // ALL TESTS PASSED
 console.log('✅ All tests passed!');

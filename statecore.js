@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 3.0.5
+ * @version 3.1.0
  */
 
 (function moduleify(moduleFactory) {
@@ -25,7 +25,7 @@
     if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory() {
     'use strict';
-    var STATECORE_VERSION = '3.0.5';
+    var STATECORE_VERSION = '3.1.0';
     var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
     var STATECORE_EVENT__DESTROY = '__DESTROY__';
     var STATECORE_EVENT__OBSERVER_ERROR = '__OBSERVER_ERROR__';
@@ -76,19 +76,26 @@
         function _call_statecoreNotifyAllObservers(caller, args, emitErrorEventIfObserversThrowError) {
             var copyObservers = allObservers.slice();
             var restObserversCount = copyObservers.length;
+            var results = [];
             while (restObserversCount > 0) {
                 try {
-                    while (restObserversCount > 0) copyObservers[copyObservers.length - (restObserversCount--)].apply(caller, args);
+                    while (restObserversCount > 0) {
+                        results.push({
+                            value: copyObservers[copyObservers.length - (restObserversCount--)].apply(caller, args)
+                        });
+                    }
                 } catch (error) {
+                    results.push({ error: error });
                     console.error('Error in statecore observer:', error);
                     if (emitErrorEventIfObserversThrowError) _call_statecoreNotifyAllObservers(caller, [STATECORE_EVENT__OBSERVER_ERROR, error, args], false);
                 }
             }
+            return results;
         }
         function statecoreNotifyAllObservers(eventName) {
             _throwError_IfDestroyed();
             if (BuiltInEvents[eventName]) throw new Error('Cannot manually emit built-in event: ' + eventName);
-            _call_statecoreNotifyAllObservers(this, arguments, true);
+            return _call_statecoreNotifyAllObservers(this, arguments, true);
         }
         return { STATECORE_VERSION: STATECORE_VERSION, statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreGetAllObservers: statecoreGetAllObservers, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDestroy: statecoreDestroy, statecoreIsDestroyed: statecoreIsDestroyed };
     }
@@ -108,7 +115,7 @@
         });
     };
     StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
-        this.statecoreNotifyAllObservers.apply(this, arguments);
+        return this.statecoreNotifyAllObservers.apply(this, arguments);
     };
     var _InstanceStoreKey = Math.random().toString(36).substring(2);
     function _preflightInstance(ctor, instanceName) {
