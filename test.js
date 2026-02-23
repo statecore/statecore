@@ -191,5 +191,33 @@ assert.deepEqual(mixedResults[0], { value: 'first' });
 assert.deepEqual(mixedResults[1], { error: boom });
 assert.deepEqual(mixedResults[2], { value: 'third' });
 
+// Observers with filter args should receive the callerArgs after the filter args
+const instanceForObserver = statecoreLib.createStatecore();
+let observerArgs = null;
+let observerCalledCount = 0;
+instanceForObserver.statecoreAddObserver(1, 2, 3, function(...args) {
+    // triggered
+    observerCalledCount++;
+    observerArgs = args;
+});
+instanceForObserver.statecoreAddObserver(1, 2, function(...args) {
+    // triggered
+    observerCalledCount++;
+    observerArgs = args;
+});
+instanceForObserver.statecoreAddObserver(1, 3, function(...args) {
+    // not triggered
+    observerCalledCount++;
+    observerArgs = args;
+});
+instanceForObserver.statecoreAddObserver(1, 2, 4, function(...args) {
+    // not triggered
+    observerCalledCount++;
+    observerArgs = args;
+});
+instanceForObserver.statecoreNotifyAllObservers(1, 2, 3, 'newState', 'oldState');
+assert.deepEqual(observerArgs, [1, 2, 3, 'newState', 'oldState'], 'Observer should receive the callerArgs after the filter args');
+assert.equal(observerCalledCount, 2, 'Only the observer with matching filter args should be called');
+
 // ALL TESTS PASSED
 console.log('✅ All tests passed!');

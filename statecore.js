@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 4.0.0
+ * @version 4.1.0
  */
 
 (function moduleify(moduleFactory) {
@@ -25,7 +25,7 @@
     if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory() {
     'use strict';
-    var STATECORE_VERSION = '4.0.0';
+    var STATECORE_VERSION = '4.1.0';
     var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
     var STATECORE_EVENT__DESTROY = '__DESTROY__';
     var STATECORE_EVENT__OBSERVER_ERROR = '__OBSERVER_ERROR__';
@@ -86,16 +86,21 @@
             for (var i = 0; i < allObservers.length; i++) {
                 var observerDef = allObservers[i];
                 // observerDef[0] is the observer function, so compare with observerDef[j + 1], and callerArgs should have at least observerDef.length - 1 arguments to compare
+                var isMatch = true;
                 if (callerArgs.length < observerDef.length - 1) {
-                    continue; // skip if not enough arguments
+                    isMatch = false;
+                    continue; // check the next one
                 }
                 for (var j = 0; j < observerDef.length - 1; j++) {
                     // observerDef[0] is the observer function, so compare with observerDef[j + 1]
                     if (callerArgs[j] !== observerDef[j + 1]) {
-                        continue; // skip if any of the arguments don't match
+                        isMatch = false;
+                        break; // break the loop if any argument does not match
                     }
                 }
-                matchedObservers.push(observerDef[0]);
+                if (isMatch) {
+                    matchedObservers.push(observerDef[0]);
+                }
             }
             return matchedObservers;
         }
