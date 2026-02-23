@@ -4,7 +4,7 @@
  * @website https://github.com/MrZenW
  * @website https://MrZenW.com
  * @license MIT
- * @version 3.1.0
+ * @version 4.0.0
  */
 
 (function moduleify(moduleFactory) {
@@ -25,7 +25,7 @@
     if (typeof this === 'object') this['statecore'] = _getStatecoreLibCopy();
 })(function moduleFactory() {
     'use strict';
-    var STATECORE_VERSION = '3.1.0';
+    var STATECORE_VERSION = '4.0.0';
     var STATECORE_EVENT__STATE_CHANGE = '__STATE_CHANGE__';
     var STATECORE_EVENT__DESTROY = '__DESTROY__';
     var STATECORE_EVENT__OBSERVER_ERROR = '__OBSERVER_ERROR__';
@@ -39,7 +39,7 @@
         function statecoreIsDestroyed() { return !allObservers; }
         function statecoreDestroy() {
             _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__DESTROY], true);
-            state = null;
+            state = undefined;
             allObservers = null;
         }
         function _throwError_IfDestroyed() {
@@ -53,35 +53,61 @@
             _call_statecoreNotifyAllObservers(this, [STATECORE_EVENT__STATE_CHANGE, newState, oldState], true);
             return state;
         }
-        function statecoreGetAllObservers() { return allObservers ? allObservers.slice() : null; }
+        function _findObserverIndex(observer) {
+            for (var i = 0; i < allObservers.length; i++) if (allObservers[i][0] === observer) return i;
+            return -1;
+        }
         function statecoreRemoveObserver(observer) {
             _throwError_IfDestroyed();
-            var existingObserverIndex = allObservers.indexOf(observer);
+            var existingObserverIndex = _findObserverIndex(observer);
             if (existingObserverIndex > -1) {
-                var copyObservers = allObservers.slice()
+                var copyObservers = allObservers.slice();
                 copyObservers.splice(existingObserverIndex, 1);
                 allObservers = copyObservers;
             }
         }
-        function statecoreAddObserver(observer) {
+        function statecoreAddObserver(someArgs, observer) {
             _throwError_IfDestroyed();
+            // > 1 means at least 1 argument before observer, so slice from 0 to -1 to get those arguments as an array; otherwise, if only 1 argument, then it's the observer and there are no arguments before it, so use an empty array
+            var args = arguments.length > 1 ? Array.prototype.slice.call(arguments, 0, -1) : [];
+            var observer = arguments.length > 0 ? arguments[arguments.length - 1] : null;
             if (typeof observer !== 'function') throw new Error('The observer must be a function!');
-            if (allObservers.indexOf(observer) === -1) {
+            var observerDef = [observer].concat(args);
+            var existingObserverIndex = _findObserverIndex(observer);
+            if (existingObserverIndex === -1) {
                 var copyObservers = allObservers.slice();
-                copyObservers.push(observer);
+                copyObservers.push(observerDef);
                 allObservers = copyObservers;
             }
             return function removeObserver() { statecoreRemoveObserver(observer); };
         }
+        function _resolve_observer(allObservers, callerArgs) {
+            var matchedObservers = [];
+            for (var i = 0; i < allObservers.length; i++) {
+                var observerDef = allObservers[i];
+                // observerDef[0] is the observer function, so compare with observerDef[j + 1], and callerArgs should have at least observerDef.length - 1 arguments to compare
+                if (callerArgs.length < observerDef.length - 1) {
+                    continue; // skip if not enough arguments
+                }
+                for (var j = 0; j < observerDef.length - 1; j++) {
+                    // observerDef[0] is the observer function, so compare with observerDef[j + 1]
+                    if (callerArgs[j] !== observerDef[j + 1]) {
+                        continue; // skip if any of the arguments don't match
+                    }
+                }
+                matchedObservers.push(observerDef[0]);
+            }
+            return matchedObservers;
+        }
         function _call_statecoreNotifyAllObservers(caller, args, emitErrorEventIfObserversThrowError) {
-            var copyObservers = allObservers.slice();
-            var restObserversCount = copyObservers.length;
+            var matchedObservers = _resolve_observer(allObservers.slice(), args);
+            var matchedObserversLength = matchedObservers.length;
             var results = [];
-            while (restObserversCount > 0) {
+            while (matchedObserversLength > 0) {
                 try {
-                    while (restObserversCount > 0) {
+                    while (matchedObserversLength > 0) {
                         results.push({
-                            value: copyObservers[copyObservers.length - (restObserversCount--)].apply(caller, args)
+                            value: matchedObservers[matchedObservers.length - matchedObserversLength--].apply(caller, args)
                         });
                     }
                 } catch (error) {
@@ -97,26 +123,13 @@
             if (BuiltInEvents[eventName]) throw new Error('Cannot manually emit built-in event: ' + eventName);
             return _call_statecoreNotifyAllObservers(this, arguments, true);
         }
-        return { STATECORE_VERSION: STATECORE_VERSION, statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreGetAllObservers: statecoreGetAllObservers, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDestroy: statecoreDestroy, statecoreIsDestroyed: statecoreIsDestroyed };
+        return { STATECORE_VERSION: STATECORE_VERSION, statecoreGetState: statecoreGetState, statecoreSetState: statecoreSetState, statecoreAddObserver: statecoreAddObserver, statecoreRemoveObserver: statecoreRemoveObserver, statecoreNotifyAllObservers: statecoreNotifyAllObservers, statecoreDestroy: statecoreDestroy, statecoreIsDestroyed: statecoreIsDestroyed };
     }
     function StatecoreClass(initialState) {
         if (!(this instanceof StatecoreClass)) return new StatecoreClass(initialState);
         var statecore = createStatecore(initialState);
         for (var key in statecore) this[key] = statecore[key];
     }
-    StatecoreClass.prototype.statecoreClassAddEventObserver = function statecoreClassAddEventObserver(/* eventName, observer */) {
-        var wantArgs = Array.prototype.slice.call(arguments, 0);
-        var observer = wantArgs.pop();
-        if (typeof observer !== 'function') throw new Error('The last argument must be a function!');
-        return this.statecoreAddObserver(function (/* ...givenArgs */) {
-            if (arguments.length < wantArgs.length) return; // return if not enough arguments
-            for (var i = 0; i < wantArgs.length; i++) if (arguments[i] !== wantArgs[i]) return; // return if any of the arguments don't match
-            observer.apply(this, arguments);
-        });
-    };
-    StatecoreClass.prototype.statecoreClassNotifyAllEventObservers = function statecoreClassNotifyAllEventObservers(eventName) {
-        return this.statecoreNotifyAllObservers.apply(this, arguments);
-    };
     var _InstanceStoreKey = Math.random().toString(36).substring(2);
     function _preflightInstance(ctor, instanceName) {
         if (!instanceName) throw new Error('Instance name is required!');

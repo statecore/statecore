@@ -44,8 +44,9 @@ declare global {
     };
 }
 
-export type StatecoreObserver = (...args: any[]) => void;
+export type StatecoreObserver = (...args: any[]) => any;
 export type StatecoreObserverRemover = () => void;
+export type StatecoreObserverResult = { value: any } | { error: any };
 
 export interface Statecore {
     STATECORE_VERSION: string;
@@ -55,8 +56,8 @@ export interface Statecore {
     statecoreSetState(state: any): any;
     statecoreRemoveObserver(observer: StatecoreObserver): void;
     statecoreAddObserver(observer: StatecoreObserver): StatecoreObserverRemover;
-    statecoreGetAllObservers(): StatecoreObserver[] | null;
-    statecoreNotifyAllObservers(eventName: string, ...args: any[]): void;
+    statecoreAddObserver(...filterArgsAndObserver: [...any[], StatecoreObserver]): StatecoreObserverRemover;
+    statecoreNotifyAllObservers(eventName: string, ...args: any[]): StatecoreObserverResult[];
 }
 
 export const STATECORE_VERSION: string;
@@ -70,14 +71,10 @@ export class StatecoreClass implements Statecore {
     // Static methods
     static statecoreClassStaticGrabInstance(instanceName: string, initialState?: any): StatecoreClass;
     static statecoreClassStaticGrabInstance(isGrab: boolean, instanceName: string, initialState?: any): StatecoreClass | null;
-    
+
     // Constructor
     constructor(initialState?: any);
-    
-    // StatecoreClass-specific methods
-    statecoreClassAddEventObserver(...args: [...any[], StatecoreObserver]): StatecoreObserverRemover;
-    statecoreClassNotifyAllEventObservers(eventName: string, ...args: any[]): void;
-    
+
     // Statecore interface implementation
     statecoreDestroy(): void;
     statecoreIsDestroyed(): boolean;
@@ -85,6 +82,6 @@ export class StatecoreClass implements Statecore {
     statecoreSetState(state: any): any;
     statecoreRemoveObserver(observer: StatecoreObserver): void;
     statecoreAddObserver(observer: StatecoreObserver): StatecoreObserverRemover;
-    statecoreGetAllObservers(): StatecoreObserver[] | null;
-    statecoreNotifyAllObservers(eventName: string, ...args: any[]): void;
+    statecoreAddObserver(...filterArgsAndObserver: [...any[], StatecoreObserver]): StatecoreObserverRemover;
+    statecoreNotifyAllObservers(eventName: string, ...args: any[]): StatecoreObserverResult[];
 }

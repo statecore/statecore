@@ -13,7 +13,6 @@ const observer = function(...args) {
     observerCalledWithArgs = args;
 }
 const removeObserver = statecoreInstance.statecoreAddObserver(observer);
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer]);
 assert.equal(typeof removeObserver, 'function');
 statecoreInstance.statecoreSetState({ test: 'test2' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test2' });
@@ -28,8 +27,7 @@ const observerError = new Error('Test error');
 const observerThrowingError = function() {
     throw observerError;
 }
-const removeObserverThrowingError = statecoreInstance.statecoreAddObserver(observerThrowingError);
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer, observerThrowingError]);
+statecoreInstance.statecoreAddObserver(observerThrowingError);
 statecoreInstance.statecoreSetState({ test: 'test3' });
 assert.deepEqual(statecoreInstance.statecoreGetState(), { test: 'test3' });
 // The 1st observer should have been called
@@ -42,16 +40,15 @@ assert.deepEqual(
 );
 
 // Test remove the observer that throws an error
+const removeObserverThrowingError = statecoreInstance.statecoreAddObserver(observerThrowingError);
 removeObserverThrowingError();
 statecoreInstance.statecoreSetState({ test: 'test4' });
 assert.deepEqual(observerCalledWithArgs, [statecoreLib.STATECORE_EVENT__STATE_CHANGE, { test: 'test4' }, { test: 'test3' }]);
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), [observer]);
 
 // Test the removeObserver function
 observerCalled = false;
 observerCalledWithArgs = null;
 removeObserver();
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), []);
 // The observer should not have been called
 statecoreInstance.statecoreSetState({ test: 'test5' });
 assert.equal(observerCalled, false);
@@ -68,9 +65,54 @@ statecoreInstance.statecoreAddObserver((eventName) => {
 statecoreInstance.statecoreDestroy();
 assert.ok(destroyEventCalled);
 assert.ok(statecoreInstance.statecoreIsDestroyed());
-assert.deepEqual(statecoreInstance.statecoreGetState(), null);
-assert.deepEqual(statecoreInstance.statecoreGetAllObservers(), null);
+assert.deepEqual(statecoreInstance.statecoreGetState(), undefined); // state is undefined after destroy
 assert.throws(() => statecoreInstance.statecoreSetState({ test: 'test5' }), /The statecore instance has been destroyed!/);
+
+// Test statecoreAddObserver with leading filter args
+const filterInstance = statecoreLib.createStatecore();
+let filterObserverCalled = false;
+let filterObserverArgs = null;
+
+// Observer registered with a leading filter arg - only matched when callerArgs.length >= filter count
+const removeFilterObserver = filterInstance.statecoreAddObserver(statecoreLib.STATECORE_EVENT__STATE_CHANGE, function(...args) {
+    filterObserverCalled = true;
+    filterObserverArgs = args;
+});
+assert.equal(typeof removeFilterObserver, 'function');
+
+// STATE_CHANGE has 3 args — satisfies the 1-filter-arg count requirement
+filterInstance.statecoreSetState('newValue');
+assert.ok(filterObserverCalled, 'Filter observer should be called when arg count is satisfied');
+assert.equal(filterObserverArgs[0], statecoreLib.STATECORE_EVENT__STATE_CHANGE);
+
+// Observer registered with more filter args than the notification provides — should be skipped
+const filterInstance2 = statecoreLib.createStatecore();
+let tooManyFiltersCalled = false;
+// DESTROY emits only 1 arg; registering with 2 filter args means it requires 2 args → skipped for DESTROY
+filterInstance2.statecoreAddObserver(statecoreLib.STATECORE_EVENT__DESTROY, 'extraFilter', function() {
+    tooManyFiltersCalled = true;
+});
+filterInstance2.statecoreDestroy();
+assert.equal(tooManyFiltersCalled, false, 'Observer with more filter args than notification args should be skipped');
+
+// removeObserver returned by filter-arg form works correctly
+const filterInstance3 = statecoreLib.createStatecore();
+let filterRemoveCalled = false;
+const removeIt = filterInstance3.statecoreAddObserver(statecoreLib.STATECORE_EVENT__STATE_CHANGE, function() {
+    filterRemoveCalled = true;
+});
+removeIt();
+filterInstance3.statecoreSetState('x');
+assert.equal(filterRemoveCalled, false, 'Observer should not be called after removeObserver()');
+
+// statecoreRemoveObserver still works with filter-arg observers
+const filterInstance4 = statecoreLib.createStatecore();
+let filterRemoveCalled2 = false;
+const filterObs = function() { filterRemoveCalled2 = true; };
+filterInstance4.statecoreAddObserver(statecoreLib.STATECORE_EVENT__STATE_CHANGE, filterObs);
+filterInstance4.statecoreRemoveObserver(filterObs);
+filterInstance4.statecoreSetState('x');
+assert.equal(filterRemoveCalled2, false, 'statecoreRemoveObserver should work for filter-arg observers');
 
 // Test GrabInstance() static method
 const StatecoreClass = statecoreLib.StatecoreClass;

@@ -1,7 +1,7 @@
 # StateCore
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-3.1.0-blue.svg)](https://github.com/statecore/statecore)
+[![Version](https://img.shields.io/badge/Version-4.0.0-blue.svg)](https://github.com/statecore/statecore)
 
 A lightweight, performant, and type-safe state management library based on the **observer pattern**.  
 StateCore helps you build **reactive, event-driven applications** with minimal overhead and maximum flexibility.
@@ -63,9 +63,8 @@ store.statecoreDestroy();
 | `createStatecore(initialState?)` | `Statecore` | Create a new instance |
 | `statecoreGetState()` | `any` | Get current state |
 | `statecoreSetState(newState)` | `any` | Set state and notify observers |
-| `statecoreAddObserver(observer)` | `() => void` | Register observer, returns unsubscribe fn |
+| `statecoreAddObserver(...filterArgs?, observer)` | `() => void` | Register observer (with optional leading filter args), returns unsubscribe fn |
 | `statecoreRemoveObserver(observer)` | `void` | Remove a specific observer |
-| `statecoreGetAllObservers()` | `Function[] \| null` | Get snapshot of all observers |
 | `statecoreNotifyAllObservers(eventName, ...args)` | `Array<{value} \| {error}>` | Emit custom event, get per-observer results |
 | `statecoreDestroy()` | `void` | Destroy instance and notify observers |
 | `statecoreIsDestroyed()` | `boolean` | Check if instance is destroyed |
@@ -76,8 +75,6 @@ store.statecoreDestroy();
 |---|---|---|
 | `statecoreClassStaticGrabInstance(name, initialState?)` | `StatecoreClass` | Get or create a named singleton |
 | `statecoreClassStaticGrabInstance(isGrab, name, initialState?)` | `StatecoreClass \| null` | Conditionally get or create a named singleton |
-| `statecoreClassAddEventObserver(...matchArgs, observer)` | `() => void` | Register observer with event filtering |
-| `statecoreClassNotifyAllEventObservers(eventName, ...args)` | `void` | Emit a custom event |
 
 ---
 
@@ -98,7 +95,7 @@ const storeWithState = createStatecore({ users: [], loading: false });
 #### `statecoreGetState()`
 Retrieves the current state value.
 
-**Returns**: the current state (any type), or `null` after the instance is destroyed.
+**Returns**: the current state (any type), or `undefined` after the instance is destroyed.
 
 ```javascript
 const currentState = store.statecoreGetState();
@@ -115,14 +112,13 @@ const next = store.statecoreSetState({ users: [...users, newUser], loading: fals
 
 ### 👁️ Observer Management
 
-#### `statecoreAddObserver(observer)`
-Adds an observer function that gets called on state changes.
+#### `statecoreAddObserver(...filterArgs?, observer)`
+Adds an observer function that gets called when the instance notifies observers. Optionally, one or more leading filter arguments can be provided before the observer function. When filter args are present, the observer is only invoked if the notification provides at least as many arguments as the number of filter args supplied.
 
 **Returns**: an `unsubscribe()` function — calling it removes the observer.
 
-**Observer Signature**: `(eventName, newState, oldState, ...customArgs) => void`
-
 ```javascript
+// Basic — called for every notification
 const removeObserver = store.statecoreAddObserver((eventName, newState, oldState) => {
   switch (eventName) {
     case STATECORE_EVENT__STATE_CHANGE:
@@ -134,8 +130,17 @@ const removeObserver = store.statecoreAddObserver((eventName, newState, oldState
   }
 });
 
+// With a leading filter arg — only invoked when the first notification arg matches
+const removeStateObserver = store.statecoreAddObserver(
+  STATECORE_EVENT__STATE_CHANGE,
+  (eventName, newState, oldState) => {
+    console.log('State updated:', newState);
+  }
+);
+
 // Remove observer when no longer needed
 removeObserver();
+removeStateObserver();
 ```
 
 #### `statecoreRemoveObserver(observer)`
@@ -145,14 +150,6 @@ Removes a specific observer function.
 const myObserver = (eventName, newState) => console.log(newState);
 store.statecoreAddObserver(myObserver);
 store.statecoreRemoveObserver(myObserver);
-```
-
-#### `statecoreGetAllObservers()`
-Returns a snapshot array of all registered observers, or `null` if the instance has been destroyed.
-
-```javascript
-const observers = store.statecoreGetAllObservers();
-console.log(`Active observers: ${observers ? observers.length : 0}`);
 ```
 
 ### 🔔 Event System
@@ -320,41 +317,6 @@ const tenant2Store = TenantStore.getForTenant('tenant2');
 
 console.log(TenantStore.hasTenantStore('tenant1')); // true
 console.log(TenantStore.hasTenantStore('tenant3')); // false
-```
-
-### 🎯 Event Helper Methods
-
-#### `statecoreClassAddEventObserver(...args, observer)`
-Enhanced observer registration with event filtering capabilities.
-
-```javascript
-class AppStore extends StatecoreClass {
-  constructor() {
-    super({ theme: 'light', notifications: [] });
-  }
-}
-
-const app = new AppStore();
-
-// Add observer with event filtering
-app.statecoreClassAddEventObserver('THEME_CHANGE', (eventName, ...args) => {
-  console.log('Theme changed:', args);
-});
-```
-
-#### `statecoreClassNotifyAllEventObservers(eventName, ...args)`
-Notify observers with custom events from class context.
-
-```javascript
-class NotificationStore extends StatecoreClass {
-  addNotification(message) {
-    const notifications = [...this.statecoreGetState().notifications, message];
-    this.statecoreSetState({ notifications });
-    
-    // Custom event notification
-    this.statecoreClassNotifyAllEventObservers('NOTIFICATION_ADDED', message);
-  }
-}
 ```
 
 ---
